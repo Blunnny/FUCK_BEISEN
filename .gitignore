@@ -55,4 +55,5 @@ geckodriver
 
 # Config (keep template, ignore actual config)
 answers.json
+single_choice_answers.json
 config.json

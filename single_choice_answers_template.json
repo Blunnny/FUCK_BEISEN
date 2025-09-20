@@ -1,0 +1,30 @@
+{
+  "test_url": "https://your-test-url-here.com",
+  "question_answers": [
+    {
+      "question_text": "当我感到心烦时,我能控制住自己不要发火",
+      "answer": "比较符合"
+    },
+    {
+      "question_text": "我能够很好地处理压力",
+      "answer": "非常符合"
+    },
+    {
+      "question_text": "我经常感到焦虑",
+      "answer": "比较不符合"
+    },
+    {
+      "question_text": "我善于与他人合作",
+      "answer": "非常符合"
+    },
+    {
+      "question_text": "我容易感到紧张",
+      "answer": "非常不符合"
+    }
+  ],
+  "settings": {
+    "wait_timeout": 10,
+    "page_load_timeout": 30,
+    "implicit_wait": 5
+  }
+}

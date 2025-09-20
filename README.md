@@ -1,11 +1,12 @@
 # 北森性格测试自动化工具
 
-一个用于自动填写北森性格测试题库的 Python 工具，支持预设答案自动答题。
+一个用于自动填写北森性格测试题库的 Python 工具，支持多种题型和预设答案自动答题。
 
 ## 功能特点
 
 - 🚀 自动打开测试链接
 - 📝 根据预设答案自动答题
+- 🎯 支持多种题型：形容词三选二、单选题
 - ⚙️ 灵活的配置选项
 - 🔄 智能重试机制
 - 🎯 多种选择器支持
@@ -19,6 +20,8 @@ pip install -r requirements.txt
 ```
 
 ## 配置说明
+
+### 形容词三选二题型
 
 1. 复制 `answers_template.json` 为 `answers.json` 配置文件
 2. 修改以下配置项：
@@ -77,16 +80,81 @@ pip install -r requirements.txt
 - `button_selectors`: 按钮选择器配置（用于进入答题区域）
 - `test_selectors`: 测试页面元素选择器（根据实际页面调整）
 
+### 单选题题型
+
+1. 复制 `single_choice_answers_template.json` 为 `single_choice_answers.json` 配置文件
+2. 修改以下配置项：
+
+```json
+{
+  "test_url": "你的北森测试链接",
+  "question_answers": [
+    {
+      "question_text": "当我感到心烦时,我能控制住自己不要发火",
+      "answer": "比较符合"
+    },
+    {
+      "question_text": "我能够很好地处理压力",
+      "answer": "非常符合"
+    },
+    {
+      "question_text": "我经常感到焦虑",
+      "answer": "比较不符合"
+    }
+  ],
+  "settings": {
+    "wait_timeout": 10,
+    "page_load_timeout": 30,
+    "implicit_wait": 5
+  }
+}
+```
+
+#### 单选题配置项说明
+
+- `test_url`: 北森测试的完整链接
+- `question_answers`: 题目答案数组，包含题目文本和对应答案
+  - `question_text`: 题目文本内容（用于匹配）
+  - `answer`: 对应的答案选项
+  - 支持的答案选项：`"非常不符合"`、`"比较不符合"`、`"比较符合"`、`"非常符合"`
+- `settings`: 运行设置
+  - `wait_timeout`: 元素等待超时时间（秒）
+  - `page_load_timeout`: 页面加载超时时间（秒）
+  - `implicit_wait`: 隐式等待时间（秒）
+
+#### 题目匹配机制
+
+程序会通过以下方式匹配题目：
+
+1. 自动识别页面上的题目文本
+2. 在配置文件中查找包含该文本的题目配置
+3. 使用匹配的题目配置中的答案
+4. 如果未找到匹配，使用默认答案"比较符合"
+
 ## 使用方法
+
+### 形容词三选二题型
 
 1. 确保已安装 Chrome 浏览器
 2. 复制 `answers_template.json` 为 `answers.json`
 3. 配置 `answers.json` 文件中的测试链接和形容词排序
-4. 激活虚拟环境 source venv/bin/activate
+4. 激活虚拟环境：`source venv/bin/activate`
 5. 运行程序：
 
 ```bash
-python main.py
+python adjective_test_automation.py
+```
+
+### 单选题题型
+
+1. 确保已安装 Chrome 浏览器
+2. 复制 `single_choice_answers_template.json` 为 `single_choice_answers.json`
+3. 配置 `single_choice_answers.json` 文件中的测试链接和答案
+4. 激活虚拟环境：`source venv/bin/activate`
+5. 运行程序：
+
+```bash
+python single_choice_automation.py
 ```
 
 ### 形容词排序说明
@@ -114,15 +182,17 @@ python main.py
 
 ```
 FUCK_BEISEN/
-├── main.py                        # 主程序入口
-├── adjective_test_automation.py   # 形容词排序自动化模块
-├── button_handler.py              # 按钮处理模块
-├── config.py                      # 配置管理模块
-├── utils.py                       # 工具函数模块
-├── answers.json                   # 答案配置文件
-├── answers_template.json          # 配置文件模板
-├── requirements.txt               # 依赖包列表
-└── README.md                     # 说明文档
+├── adjective_test_automation.py      # 形容词三选二自动化模块
+├── single_choice_automation.py       # 单选题自动化模块
+├── button_handler.py                 # 按钮处理模块（复用）
+├── utils.py                          # 工具函数模块（复用）
+├── answers.json                      # 形容词三选二答案配置文件
+├── answers_template.json             # 形容词三选二配置文件模板
+├── single_choice_answers.json        # 单选题答案配置文件
+├── single_choice_answers_template.json # 单选题配置文件模板
+├── test_single_choice.py             # 单选题测试脚本
+├── requirements.txt                  # 依赖包列表
+└── README.md                        # 说明文档
 ```
 
 ## 注意事项
