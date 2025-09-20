@@ -415,6 +415,11 @@ class AdjectiveTestAutomation:
                 print(f"选择最不符合形容词失败: {least_suitable[0]}")
                 return False
             
+            # 点击确定按钮
+            if not self.click_confirm_button():
+                print("点击确定按钮失败")
+                return False
+            
             print(f"第 {question_num} 题回答完成")
             return True
             
@@ -499,6 +504,62 @@ class AdjectiveTestAutomation:
             print(f"提交测试失败: {e}")
             return False
     
+    def click_confirm_button(self) -> bool:
+        """点击确定按钮"""
+        try:
+            print("正在点击确定按钮...")
+            
+            # 根据截图，确定按钮的选择器
+            confirm_selectors = [
+                "div.phoenix-button.content",  # 根据截图的class
+                "div[class*='phoenix-button'][class*='content']",
+                "button:contains('确定')",
+                "div:contains('确定')"
+            ]
+            
+            for selector in confirm_selectors:
+                try:
+                    if ":contains" in selector:
+                        # 使用XPath查找包含文本的元素
+                        xpath = f"//div[contains(text(), '确定')]"
+                        elements = self.driver.find_elements(By.XPATH, xpath)
+                        if elements:
+                            confirm_button = elements[0]
+                            print(f"找到确定按钮: {xpath}")
+                            break
+                    else:
+                        confirm_button = Utils.wait_for_element(self.driver, selector, timeout=3)
+                        if confirm_button:
+                            print(f"找到确定按钮: {selector}")
+                            break
+                except:
+                    continue
+            else:
+                print("未找到确定按钮")
+                return False
+            
+            # 点击确定按钮
+            try:
+                confirm_button.click()
+                print("成功点击确定按钮")
+                time.sleep(2)  # 等待页面跳转
+                return True
+            except Exception as e:
+                print(f"点击确定按钮失败: {e}")
+                # 尝试JavaScript点击
+                try:
+                    self.driver.execute_script("arguments[0].click();", confirm_button)
+                    print("使用JavaScript成功点击确定按钮")
+                    time.sleep(2)
+                    return True
+                except Exception as e2:
+                    print(f"JavaScript点击确定按钮也失败: {e2}")
+                    return False
+            
+        except Exception as e:
+            print(f"点击确定按钮失败: {e}")
+            return False
+
     def run_automation(self) -> bool:
         """运行自动化测试"""
         try:
