@@ -1,0 +1,7 @@
+selenium==4.15.2
+webdriver-manager==4.0.1
+requests==2.31.0
+beautifulsoup4==4.12.2
+lxml==4.9.3
+python-dotenv==1.0.0
+colorama==0.4.6

@@ -1,0 +1,43 @@
+{
+  "test_url": "北森测试链接",
+  "adjective_ranking": [
+    "外向",
+    "活泼",
+    "谨慎",
+    "细心",
+    "乐观",
+    "现实",
+    "创新",
+    "独立",
+    "合作",
+    "冒险",
+    "保守",
+    "依赖",
+    "安静",
+    "粗心",
+    "悲观"
+  ],
+  "settings": {
+    "wait_time": 3,
+    "retry_count": 3,
+    "headless": false,
+    "browser": "chrome",
+    "wait_timeout": 10
+  },
+  "button_selectors": {
+    "next_button": [".next-button", ".btn-next", "button[class*='next']"],
+    "start_button": [".start-button", ".btn-start", "button[class*='start']"],
+    "confirm_button": [
+      ".confirm-button",
+      ".btn-confirm",
+      "button[class*='confirm']"
+    ]
+  },
+  "test_selectors": {
+    "adjective_container": ".adjective-group, .word-group, .choice-group",
+    "adjective_items": ".adjective-item, .word-item, .choice-item",
+    "most_suitable": ".most-suitable, .most-like, .most-match",
+    "least_suitable": ".least-suitable, .least-like, .least-match",
+    "next_question": ".next-question, .continue, .next"
+  }
+}
