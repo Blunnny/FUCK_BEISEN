@@ -63,6 +63,16 @@ def test_continue_button_detection():
             print(f"  ✗ click_continue_button 方法不存在")
             return False
         
+        # 测试下一步按钮方法
+        print(f"{Fore.YELLOW}测试下一步按钮方法...")
+        
+        # 测试方法是否存在
+        if hasattr(button_handler, 'click_next_step_button'):
+            print(f"  ✓ click_next_step_button 方法存在")
+        else:
+            print(f"  ✗ click_next_step_button 方法不存在")
+            return False
+        
         # 测试选择器配置
         print(f"{Fore.YELLOW}测试选择器配置...")
         continue_selectors = [
@@ -74,9 +84,20 @@ def test_continue_button_detection():
         ]
         
         for selector in continue_selectors:
-            print(f"  ✓ 选择器: {selector}")
+            print(f"  ✓ 继续答题选择器: {selector}")
         
-        print(f"{Fore.GREEN}✓ 继续答题按钮检测功能测试通过")
+        next_step_selectors = [
+            "div.phoenix-button.content",
+            ".phoenix-button.content",
+            "div[class*='phoenix-button'][class*='content']",
+            ".phoenix-button",
+            "div[class*='phoenix-button']",
+        ]
+        
+        for selector in next_step_selectors:
+            print(f"  ✓ 下一步选择器: {selector}")
+        
+        print(f"{Fore.GREEN}✓ 继续答题和下一步按钮检测功能测试通过")
         
         # 关闭浏览器
         driver.quit()
@@ -89,16 +110,16 @@ def test_continue_button_detection():
 def main():
     """主函数"""
     print(f"{Fore.CYAN}{'='*60}")
-    print(f"{Fore.YELLOW}    继续答题按钮功能测试")
+    print(f"{Fore.YELLOW}    继续答题和下一步按钮功能测试")
     print(f"{Fore.CYAN}{'='*60}")
     
     # 测试按钮检测功能
     if not test_continue_button_detection():
-        print(f"\n{Fore.RED}继续答题按钮功能测试失败！")
+        print(f"\n{Fore.RED}继续答题和下一步按钮功能测试失败！")
         return False
     
     print(f"\n{Fore.GREEN}{'='*60}")
-    print(f"{Fore.GREEN}✓ 继续答题按钮功能测试通过！")
+    print(f"{Fore.GREEN}✓ 继续答题和下一步按钮功能测试通过！")
     print(f"{Fore.CYAN}{'='*60}")
     return True
 

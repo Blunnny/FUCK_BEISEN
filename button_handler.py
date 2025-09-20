@@ -302,6 +302,84 @@ class ButtonHandler:
         # 点击按钮
         return self.click_button(button, "继续答题按钮")
     
+    def click_next_step_button(self) -> bool:
+        """点击下一步按钮（答题说明页面）"""
+        print("查找下一步按钮...")
+        
+        # 根据截图分析，下一步按钮的选择器
+        next_step_selectors = [
+            "div.phoenix-button.content",  # 根据截图的class结构
+            ".phoenix-button.content",     # CSS类选择器
+            "div[class*='phoenix-button'][class*='content']",  # 组合选择器
+            ".phoenix-button",             # 通用phoenix-button
+            "div[class*='phoenix-button']", # 包含phoenix-button的div
+        ]
+        
+        # 尝试按选择器查找按钮
+        button = None
+        for selector in next_step_selectors:
+            try:
+                print(f"尝试选择器: {selector}")
+                elements = self.driver.find_elements(By.CSS_SELECTOR, selector)
+                for element in elements:
+                    if element.is_displayed():
+                        # 检查元素内部是否包含"下一步"文本
+                        text = element.text.strip()
+                        if "下一步" in text or "Next" in text:
+                            button = element
+                            print(f"找到下一步按钮: {text}")
+                            break
+                if button:
+                    break
+            except Exception as e:
+                print(f"选择器 {selector} 查找失败: {e}")
+                continue
+        
+        # 如果按选择器没找到，尝试按文本查找
+        if not button:
+            print("按选择器未找到，尝试按文本查找...")
+            button = self.find_button_by_text(["下一步", "Next", "继续", "开始答题"])
+        
+        if not button:
+            print("未找到下一步按钮")
+            return False
+        
+        # 智能等待按钮可点击
+        print("等待下一步按钮可点击...")
+        max_wait_time = 10  # 最大等待10秒
+        wait_interval = 0.5  # 每0.5秒检查一次
+        waited_time = 0
+        
+        while waited_time < max_wait_time:
+            try:
+                # 检查按钮是否可点击
+                if button.is_enabled() and button.is_displayed():
+                    # 尝试点击，如果成功就跳出循环
+                    try:
+                        WebDriverWait(self.driver, 1).until(EC.element_to_be_clickable(button))
+                        print(f"下一步按钮在 {waited_time:.1f} 秒后变为可点击")
+                        break
+                    except TimeoutException:
+                        pass
+                
+                time.sleep(wait_interval)
+                waited_time += wait_interval
+                
+                # 每2秒打印一次进度
+                if int(waited_time) % 2 == 0 and waited_time > 0:
+                    print(f"已等待 {waited_time:.1f} 秒...")
+                    
+            except Exception as e:
+                print(f"检查按钮状态时出错: {e}")
+                time.sleep(wait_interval)
+                waited_time += wait_interval
+        
+        if waited_time >= max_wait_time:
+            print("下一步按钮等待超时，尝试强制点击")
+        
+        # 点击按钮
+        return self.click_button(button, "下一步按钮")
+    
     def click_confirm_button(self) -> bool:
         """点击确认按钮"""
         confirm_texts = [
@@ -398,6 +476,17 @@ class ButtonHandler:
                 if self.click_continue_button():
                     print("成功点击继续答题按钮")
                     Utils.random_delay(2, 3)
+                    
+                    # 点击继续答题后，等待页面加载，然后尝试点击下一步按钮
+                    print("等待页面加载...")
+                    Utils.random_delay(3, 5)
+                    
+                    # 尝试点击下一步按钮（答题说明页面）
+                    if self.click_next_step_button():
+                        print("成功点击下一步按钮")
+                        Utils.random_delay(2, 3)
+                    else:
+                        print("未找到下一步按钮，可能已经进入答题区域")
                 else:
                     print("未找到继续答题按钮，可能已经进入答题区域")
                 continue
@@ -405,14 +494,24 @@ class ButtonHandler:
             # 2. 尝试点击继续答题/去答题按钮
             if self.click_continue_button():
                 buttons_clicked = True
+                # 点击继续答题后，尝试点击下一步按钮
+                Utils.random_delay(2, 3)
+                if self.click_next_step_button():
+                    print("成功点击下一步按钮")
+                    Utils.random_delay(2, 3)
                 continue
             
-            # 3. 尝试点击开始答题按钮
+            # 3. 尝试点击下一步按钮（答题说明页面）
+            if self.click_next_step_button():
+                buttons_clicked = True
+                continue
+            
+            # 4. 尝试点击开始答题按钮
             if self.click_start_button():
                 buttons_clicked = True
                 continue
             
-            # 4. 尝试点击下一步按钮
+            # 5. 尝试点击通用下一步按钮
             if self.click_next_button():
                 buttons_clicked = True
                 continue
