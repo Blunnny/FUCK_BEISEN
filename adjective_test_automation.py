@@ -133,24 +133,81 @@ class AdjectiveTestAutomation:
     def find_adjective_elements(self) -> List[WebElement]:
         """查找形容词元素"""
         try:
+            # 首先等待页面加载完成
+            print("等待页面加载...")
+            time.sleep(2)
+            
             # 等待形容词容器出现
-            container_selector = self.test_selectors.get("adjective_container", ".adjective-group, .word-group, .choice-group")
-            container = Utils.wait_for_element(self.driver, container_selector, timeout=self.wait_timeout)
+            print("等待形容词容器...")
+            container_selectors = [
+                "div[data-cls='tuozhuai-content']",
+                "div[class*='eMsyU']",
+                "div[class*='jWOM6']"
+            ]
+            
+            container = None
+            for container_selector in container_selectors:
+                try:
+                    container = Utils.wait_for_element(self.driver, container_selector, timeout=5)
+                    if container:
+                        print(f"找到容器: {container_selector}")
+                        break
+                except:
+                    continue
             
             if not container:
                 print("未找到形容词容器")
                 return []
             
-            # 查找所有形容词项
-            item_selector = self.test_selectors.get("adjective_items", ".adjective-item, .word-item, .choice-item")
-            items = self.driver.find_elements(By.CSS_SELECTOR, item_selector)
+            # 等待形容词选项出现
+            print("等待形容词选项...")
+            time.sleep(1)
             
-            if not items:
-                print("未找到形容词项")
-                return []
+            # 调试：检查页面HTML结构
+            print("调试：检查页面HTML结构...")
+            try:
+                page_source = self.driver.page_source
+                if "tuozhuai-content" in page_source:
+                    print("页面包含 'tuozhuai-content'")
+                else:
+                    print("页面不包含 'tuozhuai-content'")
+                
+                if "I6Yvw" in page_source:
+                    print("页面包含 'I6Yvw'")
+                else:
+                    print("页面不包含 'I6Yvw'")
+                
+                if "善解人意的" in page_source:
+                    print("页面包含 '善解人意的'")
+                else:
+                    print("页面不包含 '善解人意的'")
+            except Exception as e:
+                print(f"检查页面结构失败: {e}")
             
-            print(f"找到 {len(items)} 个形容词项")
-            return items
+            # 根据截图分析，使用正确的选择器
+            option_selectors = [
+                "div[data-cls='tuozhuai-content'] span[class*='I6Yvw']",  # 根据截图的容器和span结构
+                "div[class*='eMsyU'] span[class*='I6Yvw']",               # 根据截图的容器class
+                "span[class*='I6Yvw']",                                   # 根据截图的span class
+                "div[data-cls='tuozhuai-content'] span",                  # 容器内的所有span
+                "div[class*='eMsyU'] span",                               # 根据截图的容器class
+                "div[class*='qupWj'] span[class*='I6Yvw']",               # 根据截图的选项结构
+            ]
+            
+            for selector in option_selectors:
+                try:
+                    items = self.driver.find_elements(By.CSS_SELECTOR, selector)
+                    print(f"选择器 {selector} 找到 {len(items)} 个元素")
+                    
+                    if items:
+                        print(f"找到 {len(items)} 个形容词项")
+                        return items
+                except Exception as e:
+                    print(f"选择器 {selector} 查找失败: {e}")
+                    continue
+            
+            print("未找到形容词元素")
+            return []
             
         except Exception as e:
             print(f"查找形容词元素失败: {e}")
@@ -161,20 +218,33 @@ class AdjectiveTestAutomation:
         try:
             # 尝试多种方式获取文本
             text = element.text.strip()
+            print(f"元素文本: '{text}'")
+            
             if text:
                 return text
             
             # 尝试从子元素获取文本
             text_elements = element.find_elements(By.CSS_SELECTOR, "span, div, p, label")
-            for text_elem in text_elements:
-                text = text_elem.text.strip()
-                if text:
-                    return text
+            print(f"找到 {len(text_elements)} 个子元素")
+            
+            for i, text_elem in enumerate(text_elements):
+                sub_text = text_elem.text.strip()
+                print(f"子元素 {i}: '{sub_text}'")
+                if sub_text:
+                    return sub_text
             
             # 尝试从属性获取
-            text = element.get_attribute("title") or element.get_attribute("data-text") or element.get_attribute("value")
-            if text:
-                return text.strip()
+            title = element.get_attribute("title")
+            data_text = element.get_attribute("data-text")
+            value = element.get_attribute("value")
+            print(f"属性: title='{title}', data-text='{data_text}', value='{value}'")
+            
+            if title:
+                return title.strip()
+            if data_text:
+                return data_text.strip()
+            if value:
+                return value.strip()
             
             return ""
             
@@ -183,18 +253,72 @@ class AdjectiveTestAutomation:
             return ""
     
     def find_most_least_buttons(self) -> Tuple[Optional[WebElement], Optional[WebElement]]:
-        """查找最符合和最不符合按钮"""
+        """查找最符合和最不符合选框"""
         try:
-            most_selector = self.test_selectors.get("most_suitable", ".most-suitable, .most-like, .most-match")
-            least_selector = self.test_selectors.get("least_suitable", ".least-suitable, .least-like, .least-match")
+            # 根据截图，查找包含"最符合"和"最不符合"文本的选框
+            most_selectors = [
+                "div:contains('最符合')",
+                "div[class*='qupWj']:contains('最符合')",
+                "div[class*='kACSf']:contains('最符合')",
+                "div[class*='Lu7d3']:contains('最符合')",
+                "div[data-cls*='most']",
+                "div[data-cls*='suitable']"
+            ]
             
-            most_button = Utils.wait_for_element(self.driver, most_selector, timeout=5)
-            least_button = Utils.wait_for_element(self.driver, least_selector, timeout=5)
+            least_selectors = [
+                "div:contains('最不符合')",
+                "div[class*='qupWj']:contains('最不符合')",
+                "div[class*='kACSf']:contains('最不符合')",
+                "div[class*='Lu7d3']:contains('最不符合')",
+                "div[data-cls*='least']",
+                "div[data-cls*='unsuitable']"
+            ]
+            
+            most_button = None
+            least_button = None
+            
+            # 查找最符合选框
+            for selector in most_selectors:
+                try:
+                    if ":contains" in selector:
+                        # 使用XPath查找包含文本的元素
+                        xpath = f"//div[contains(text(), '最符合')]"
+                        elements = self.driver.find_elements(By.XPATH, xpath)
+                        if elements:
+                            most_button = elements[0]
+                            print(f"找到最符合选框: {xpath}")
+                            break
+                    else:
+                        most_button = Utils.wait_for_element(self.driver, selector, timeout=2)
+                        if most_button:
+                            print(f"找到最符合选框: {selector}")
+                            break
+                except:
+                    continue
+            
+            # 查找最不符合选框
+            for selector in least_selectors:
+                try:
+                    if ":contains" in selector:
+                        # 使用XPath查找包含文本的元素
+                        xpath = f"//div[contains(text(), '最不符合')]"
+                        elements = self.driver.find_elements(By.XPATH, xpath)
+                        if elements:
+                            least_button = elements[0]
+                            print(f"找到最不符合选框: {xpath}")
+                            break
+                    else:
+                        least_button = Utils.wait_for_element(self.driver, selector, timeout=2)
+                        if least_button:
+                            print(f"找到最不符合选框: {selector}")
+                            break
+                except:
+                    continue
             
             return most_button, least_button
             
         except Exception as e:
-            print(f"查找最符合/最不符合按钮失败: {e}")
+            print(f"查找最符合/最不符合选框失败: {e}")
             return None, None
     
     def select_adjective(self, adjective: str, elements: List[WebElement], is_most: bool) -> bool:
@@ -256,13 +380,18 @@ class AdjectiveTestAutomation:
             
             # 提取页面上的形容词
             page_adjectives = []
-            for elem in elements:
+            for i, elem in enumerate(elements):
                 text = self.extract_adjective_text(elem)
+                print(f"元素 {i}: 文本='{text}'")
                 if text:
                     page_adjectives.append((text, elem))
+                else:
+                    print(f"元素 {i} 文本为空，跳过")
             
-            if len(page_adjectives) != 3:
-                print(f"第 {question_num} 题找到的形容词数量不正确: {len(page_adjectives)}")
+            print(f"提取到的形容词: {[adj[0] for adj in page_adjectives]}")
+            
+            if len(page_adjectives) < 3:
+                print(f"第 {question_num} 题找到的形容词数量不足: {len(page_adjectives)}")
                 return False
             
             print(f"页面形容词: {[adj[0] for adj in page_adjectives]}")
@@ -392,7 +521,6 @@ class AdjectiveTestAutomation:
                 print("未配置形容词排序")
                 return False
             
-            print(f"形容词排序配置: {self.adjective_ranking}")
             print("开始答题，程序将根据排序自动选择最符合和最不符合的形容词...")
             
             # 开始答题

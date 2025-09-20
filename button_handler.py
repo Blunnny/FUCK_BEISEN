@@ -4,7 +4,7 @@
 """
 import time
 import random
-from typing import List, Optional, Dict, Any
+from typing import List, Optional, Dict, Any, Tuple
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
@@ -458,6 +458,318 @@ class ButtonHandler:
         # 点击按钮
         return self.click_button(button, "练习题下一步按钮")
     
+    def click_formal_answer_button(self) -> bool:
+        """点击正式答题按钮（练习完成页面）"""
+        print("查找正式答题按钮...")
+        
+        # 根据截图分析，正式答题按钮的选择器
+        formal_answer_selectors = [
+            "div.phoenix-button.content",  # 根据截图的class结构
+            ".phoenix-button.content",     # CSS类选择器
+            "div[class*='phoenix-button'][class*='content']",  # 组合选择器
+            ".phoenix-button",             # 通用phoenix-button
+            "div[class*='phoenix-button']", # 包含phoenix-button的div
+        ]
+        
+        # 尝试按选择器查找按钮
+        button = None
+        for selector in formal_answer_selectors:
+            try:
+                print(f"尝试选择器: {selector}")
+                elements = self.driver.find_elements(By.CSS_SELECTOR, selector)
+                for element in elements:
+                    if element.is_displayed():
+                        # 检查元素内部是否包含"正式答题"文本
+                        text = element.text.strip()
+                        if "正式答题" in text or "正式答題" in text or "开始答题" in text:
+                            button = element
+                            print(f"找到正式答题按钮: {text}")
+                            break
+                if button:
+                    break
+            except Exception as e:
+                print(f"选择器 {selector} 查找失败: {e}")
+                continue
+        
+        # 如果按选择器没找到，尝试按文本查找
+        if not button:
+            print("按选择器未找到，尝试按文本查找...")
+            button = self.find_button_by_text(["正式答题", "正式答題", "开始答题", "开始测试", "进入答题"])
+        
+        if not button:
+            print("未找到正式答题按钮")
+            return False
+        
+        # 智能等待按钮可点击
+        print("等待正式答题按钮可点击...")
+        max_wait_time = 10  # 最大等待10秒
+        wait_interval = 0.5  # 每0.5秒检查一次
+        waited_time = 0
+        
+        while waited_time < max_wait_time:
+            try:
+                # 检查按钮是否可点击
+                if button.is_enabled() and button.is_displayed():
+                    # 尝试点击，如果成功就跳出循环
+                    try:
+                        WebDriverWait(self.driver, 1).until(EC.element_to_be_clickable(button))
+                        print(f"正式答题按钮在 {waited_time:.1f} 秒后变为可点击")
+                        break
+                    except TimeoutException:
+                        pass
+                
+                time.sleep(wait_interval)
+                waited_time += wait_interval
+                
+                # 每2秒打印一次进度
+                if int(waited_time) % 2 == 0 and waited_time > 0:
+                    print(f"已等待 {waited_time:.1f} 秒...")
+                    
+            except Exception as e:
+                print(f"检查按钮状态时出错: {e}")
+                time.sleep(wait_interval)
+                waited_time += wait_interval
+        
+        if waited_time >= max_wait_time:
+            print("正式答题按钮等待超时，尝试强制点击")
+        
+        # 点击按钮
+        return self.click_button(button, "正式答题按钮")
+    
+    def find_adjective_options(self, adjective_list: List[str] = None) -> List[WebElement]:
+        """查找页面上的形容词选项"""
+        try:
+            # 使用传入的形容词列表，如果没有传入则使用默认列表
+            if adjective_list is None:
+                adjective_list = ["善解人意的", "有计划性的", "有领导意愿的"]
+            
+            print(f"查找形容词选项，目标列表: {adjective_list}")
+            
+            # 根据截图分析，形容词选项的选择器
+            option_selectors = [
+                "div[data-cls='select-block_item']",  # 根据截图的data-cls属性
+                ".select-block_item",                 # CSS类选择器
+                "div[class*='select-block']",         # 包含select-block的div
+                "div[class*='SK9xr']",                # 根据截图的class
+                "span[class*='I6Yvw']",               # 根据截图的span class
+            ]
+            
+            options = []
+            for selector in option_selectors:
+                try:
+                    elements = self.driver.find_elements(By.CSS_SELECTOR, selector)
+                    print(f"选择器 {selector} 找到 {len(elements)} 个元素")
+                    
+                    for element in elements:
+                        if element.is_displayed():
+                            text = element.text.strip()
+                            print(f"元素文本: '{text}'")
+                            
+                            # 检查是否包含目标形容词
+                            if text and any(adj in text for adj in adjective_list):
+                                options.append(element)
+                                print(f"找到形容词选项: {text}")
+                    
+                    if options:
+                        print(f"找到选项，停止搜索")
+                        break
+                except Exception as e:
+                    print(f"选择器 {selector} 查找失败: {e}")
+                    continue
+            
+            print(f"总共找到 {len(options)} 个形容词选项")
+            return options
+            
+        except Exception as e:
+            print(f"查找形容词选项失败: {e}")
+            return []
+    
+    def find_most_least_boxes(self) -> Tuple[Optional[WebElement], Optional[WebElement]]:
+        """查找最符合和最不符合的选框"""
+        try:
+            # 根据截图分析，选框的选择器
+            box_selectors = [
+                "div[data-cls='tuozhuai-content']",  # 根据截图的data-cls属性
+                ".tuozhuai-content",                 # CSS类选择器
+                "div[class*='tuozhuai']",            # 包含tuozhuai的div
+                "div[class*='eMsyU']",               # 根据截图的class
+            ]
+            
+            most_box = None
+            least_box = None
+            
+            for selector in box_selectors:
+                try:
+                    elements = self.driver.find_elements(By.CSS_SELECTOR, selector)
+                    for element in elements:
+                        if element.is_displayed():
+                            text = element.text.strip()
+                            if "最符合" in text:
+                                most_box = element
+                                print(f"找到最符合选框: {text}")
+                            elif "最不符合" in text:
+                                least_box = element
+                                print(f"找到最不符合选框: {text}")
+                    if most_box and least_box:
+                        break
+                except Exception as e:
+                    print(f"选择器 {selector} 查找失败: {e}")
+                    continue
+            
+            return most_box, least_box
+            
+        except Exception as e:
+            print(f"查找最符合/最不符合选框失败: {e}")
+            return None, None
+    
+    def answer_question(self, adjective_ranking: List[str]) -> bool:
+        """回答一道题目"""
+        try:
+            print("开始回答题目...")
+            
+            # 查找形容词选项
+            options = self.find_adjective_options(adjective_ranking)
+            if len(options) < 1:
+                print(f"未找到任何形容词选项")
+                return False
+            
+            # 提取选项文本
+            option_texts = []
+            for option in options:
+                text = option.text.strip()
+                print(f"选项文本: {text}")
+                
+                # 如果文本包含多个形容词，按行分割
+                if '\n' in text:
+                    lines = text.split('\n')
+                    for line in lines:
+                        line = line.strip()
+                        if line and any(adj in line for adj in adjective_ranking):
+                            option_texts.append(line)
+                            print(f"提取到形容词: {line}")
+                else:
+                    option_texts.append(text)
+                    print(f"提取到形容词: {text}")
+            
+            print(f"页面选项: {option_texts}")
+            print(f"配置排序: {adjective_ranking}")
+            
+            # 根据排序选择最符合和最不符合的形容词
+            most_suitable, least_suitable = self.select_most_and_least_suitable(option_texts, adjective_ranking)
+            
+            if not most_suitable or not least_suitable:
+                print("无法确定最符合/最不符合的形容词")
+                return False
+            
+            print(f"最符合: {most_suitable}, 最不符合: {least_suitable}")
+            
+            # 查找最符合和最不符合的选框
+            most_box, least_box = self.find_most_least_boxes()
+            if not most_box or not least_box:
+                print("未找到最符合/最不符合选框")
+                return False
+            
+            # 选择最符合的形容词
+            if not self.select_adjective_for_box(most_suitable, options, most_box):
+                print(f"选择最符合形容词失败: {most_suitable}")
+                return False
+            
+            Utils.random_delay(1, 2)
+            
+            # 选择最不符合的形容词
+            if not self.select_adjective_for_box(least_suitable, options, least_box):
+                print(f"选择最不符合形容词失败: {least_suitable}")
+                return False
+            
+            Utils.random_delay(1, 2)
+            
+            # 点击确定按钮
+            if not self.click_confirm_button():
+                print("点击确定按钮失败")
+                return False
+            
+            print("题目回答完成")
+            return True
+            
+        except Exception as e:
+            print(f"回答题目失败: {e}")
+            return False
+    
+    def select_most_and_least_suitable(self, page_options: List[str], adjective_ranking: List[str]) -> Tuple[Optional[str], Optional[str]]:
+        """根据排序选择最符合和最不符合的形容词"""
+        try:
+            # 计算每个选项的优先级
+            option_priorities = []
+            for option in page_options:
+                priority = 999  # 默认优先级（数字越大优先级越低）
+                for i, adj in enumerate(adjective_ranking):
+                    if adj in option or option in adj:
+                        priority = i
+                        break
+                option_priorities.append((option, priority))
+            
+            # 按优先级排序（数字越小优先级越高）
+            option_priorities.sort(key=lambda x: x[1])
+            
+            print(f"优先级排序: {[(opt[0], opt[1]) for opt in option_priorities]}")
+            
+            # 最符合的是优先级最高的（数字最小）
+            most_suitable = option_priorities[0][0]
+            
+            # 最不符合的是优先级最低的（数字最大）
+            least_suitable = option_priorities[-1][0]
+            
+            return most_suitable, least_suitable
+            
+        except Exception as e:
+            print(f"选择最符合/最不符合形容词失败: {e}")
+            return None, None
+    
+    def select_adjective_for_box(self, adjective: str, options: List[WebElement], target_box: WebElement) -> bool:
+        """将形容词点击到指定选框"""
+        try:
+            print(f"正在将 '{adjective}' 点击到选框...")
+            
+            # 查找匹配的形容词选项
+            target_option = None
+            for option in options:
+                text = option.text.strip()
+                if adjective in text or text in adjective:
+                    target_option = option
+                    break
+            
+            if not target_option:
+                print(f"未找到形容词选项: {adjective}")
+                return False
+            
+            # 点击形容词选项
+            try:
+                print(f"点击形容词选项: {adjective}")
+                success = Utils.safe_click(self.driver, target_option, self.retry_count)
+                if not success:
+                    print(f"点击形容词选项失败: {adjective}")
+                    return False
+                
+                Utils.random_delay(0.5, 1.0)
+                
+                # 点击目标选框
+                print(f"点击目标选框")
+                success = Utils.safe_click(self.driver, target_box, self.retry_count)
+                if not success:
+                    print(f"点击目标选框失败")
+                    return False
+                
+                print(f"成功将 '{adjective}' 点击到选框")
+                return True
+                
+            except Exception as e:
+                print(f"点击操作失败: {e}")
+                return False
+            
+        except Exception as e:
+            print(f"选择形容词到选框失败: {e}")
+            return False
+    
     def click_confirm_button(self) -> bool:
         """点击确认按钮"""
         confirm_texts = [
@@ -572,6 +884,17 @@ class ButtonHandler:
                         if self.click_practice_next_step_button():
                             print("成功点击练习题下一步按钮")
                             Utils.random_delay(2, 3)
+                            
+                            # 点击练习题下一步后，等待页面加载，然后尝试点击正式答题按钮
+                            print("等待页面加载...")
+                            Utils.random_delay(3, 5)
+                            
+                            # 尝试点击正式答题按钮
+                            if self.click_formal_answer_button():
+                                print("成功点击正式答题按钮，进入答题区域")
+                                return True  # 直接返回，不再继续尝试其他按钮
+                            else:
+                                print("未找到正式答题按钮，可能已经进入答题区域")
                         else:
                             print("未找到练习题下一步按钮，可能已经进入答题区域")
                     else:
@@ -594,6 +917,12 @@ class ButtonHandler:
                     if self.click_practice_next_step_button():
                         print("成功点击练习题下一步按钮")
                         Utils.random_delay(2, 3)
+                        
+                        # 点击练习题下一步后，尝试点击正式答题按钮
+                        Utils.random_delay(2, 3)
+                        if self.click_formal_answer_button():
+                            print("成功点击正式答题按钮，进入答题区域")
+                            return True  # 直接返回，不再继续尝试其他按钮
                 continue
             
             # 3. 尝试点击下一步按钮（答题说明页面）
@@ -604,12 +933,29 @@ class ButtonHandler:
                 if self.click_practice_next_step_button():
                     print("成功点击练习题下一步按钮")
                     Utils.random_delay(2, 3)
+                    
+                    # 点击练习题下一步后，尝试点击正式答题按钮
+                    Utils.random_delay(2, 3)
+                    if self.click_formal_answer_button():
+                        print("成功点击正式答题按钮，进入答题区域")
+                        return True  # 直接返回，不再继续尝试其他按钮
                 continue
             
             # 4. 尝试点击练习题下一步按钮
             if self.click_practice_next_step_button():
                 buttons_clicked = True
+                # 点击练习题下一步后，尝试点击正式答题按钮
+                Utils.random_delay(2, 3)
+                if self.click_formal_answer_button():
+                    print("成功点击正式答题按钮，进入答题区域")
+                    return True  # 直接返回，不再继续尝试其他按钮
                 continue
+            
+            # 5. 尝试点击正式答题按钮
+            if self.click_formal_answer_button():
+                buttons_clicked = True
+                print("成功点击正式答题按钮，进入答题区域")
+                return True  # 直接返回，不再继续尝试其他按钮
             
             # 4. 尝试点击开始答题按钮
             if self.click_start_button():

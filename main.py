@@ -30,11 +30,10 @@ def check_config_file():
         print(f"""
 {{
   "test_url": "你的测试链接",
-  "answers": {{
-    "question_1": "A",
-    "question_2": "B",
-    "question_3": "C"
-  }},
+  "adjective_ranking": [
+    "外向", "活泼", "谨慎", "细心", "乐观", "现实", "创新", "独立", 
+    "合作", "冒险", "保守", "依赖", "安静", "粗心", "悲观"
+  ],
   "settings": {{
     "wait_time": 3,
     "retry_count": 3,
@@ -66,15 +65,9 @@ def main():
         print(f"  无头模式: {'是' if automation.config.is_headless() else '否'}")
         print()
         
-        # 显示形容词排序信息
+        # 检查形容词排序配置
         adjective_ranking = automation.config.get_adjective_ranking()
-        if adjective_ranking:
-            print(f"{Fore.CYAN}形容词排序配置:")
-            print(f"  排序列表: {adjective_ranking}")
-            print(f"  共 {len(adjective_ranking)} 个形容词")
-            print(f"  优先级: 越靠前越符合，越靠后越不符合")
-            print()
-        else:
+        if not adjective_ranking:
             print(f"{Fore.RED}未配置形容词排序！")
             sys.exit(1)
         
