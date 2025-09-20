@@ -224,6 +224,84 @@ class ButtonHandler:
         # 点击按钮
         return self.click_button(button, "进入试卷按钮")
     
+    def click_continue_button(self) -> bool:
+        """点击继续答题或去答题按钮"""
+        print("查找继续答题/去答题按钮...")
+        
+        # 根据截图分析，继续答题按钮的选择器
+        continue_selectors = [
+            "div[data-cls='outline-part-item-right']",  # 根据截图的data-cls属性
+            "div[data-cls*='outline-part-item']",       # 更宽泛的匹配
+            ".outline-part-item-right",                 # CSS类选择器
+            "div[class*='outline-part-item']",          # 包含outline-part-item的div
+            "div[class*='part-item']",                  # 包含part-item的div
+        ]
+        
+        # 尝试按选择器查找按钮
+        button = None
+        for selector in continue_selectors:
+            try:
+                print(f"尝试选择器: {selector}")
+                elements = self.driver.find_elements(By.CSS_SELECTOR, selector)
+                for element in elements:
+                    if element.is_displayed():
+                        # 检查元素内部是否包含"继续答题"或"去答题"文本
+                        text = element.text.strip()
+                        if "继续答题" in text or "去答题" in text or "继续" in text:
+                            button = element
+                            print(f"找到继续答题按钮: {text}")
+                            break
+                if button:
+                    break
+            except Exception as e:
+                print(f"选择器 {selector} 查找失败: {e}")
+                continue
+        
+        # 如果按选择器没找到，尝试按文本查找
+        if not button:
+            print("按选择器未找到，尝试按文本查找...")
+            button = self.find_button_by_text(["继续答题", "去答题", "继续", "开始答题"])
+        
+        if not button:
+            print("未找到继续答题/去答题按钮")
+            return False
+        
+        # 智能等待按钮可点击
+        print("等待继续答题按钮可点击...")
+        max_wait_time = 10  # 最大等待10秒
+        wait_interval = 0.5  # 每0.5秒检查一次
+        waited_time = 0
+        
+        while waited_time < max_wait_time:
+            try:
+                # 检查按钮是否可点击
+                if button.is_enabled() and button.is_displayed():
+                    # 尝试点击，如果成功就跳出循环
+                    try:
+                        WebDriverWait(self.driver, 1).until(EC.element_to_be_clickable(button))
+                        print(f"继续答题按钮在 {waited_time:.1f} 秒后变为可点击")
+                        break
+                    except TimeoutException:
+                        pass
+                
+                time.sleep(wait_interval)
+                waited_time += wait_interval
+                
+                # 每2秒打印一次进度
+                if int(waited_time) % 2 == 0 and waited_time > 0:
+                    print(f"已等待 {waited_time:.1f} 秒...")
+                    
+            except Exception as e:
+                print(f"检查按钮状态时出错: {e}")
+                time.sleep(wait_interval)
+                waited_time += wait_interval
+        
+        if waited_time >= max_wait_time:
+            print("继续答题按钮等待超时，尝试强制点击")
+        
+        # 点击按钮
+        return self.click_button(button, "继续答题按钮")
+    
     def click_confirm_button(self) -> bool:
         """点击确认按钮"""
         confirm_texts = [
@@ -312,24 +390,39 @@ class ButtonHandler:
             # 1. 优先尝试点击进入试卷按钮（带5秒等待）
             if self.click_enter_test_button():
                 buttons_clicked = True
+                # 点击进入试卷后，等待页面加载，然后尝试点击继续答题按钮
+                print("等待页面加载...")
+                Utils.random_delay(3, 5)
+                
+                # 尝试点击继续答题按钮
+                if self.click_continue_button():
+                    print("成功点击继续答题按钮")
+                    Utils.random_delay(2, 3)
+                else:
+                    print("未找到继续答题按钮，可能已经进入答题区域")
                 continue
             
-            # 2. 尝试点击开始答题按钮
+            # 2. 尝试点击继续答题/去答题按钮
+            if self.click_continue_button():
+                buttons_clicked = True
+                continue
+            
+            # 3. 尝试点击开始答题按钮
             if self.click_start_button():
                 buttons_clicked = True
                 continue
             
-            # 3. 尝试点击下一步按钮
+            # 4. 尝试点击下一步按钮
             if self.click_next_button():
                 buttons_clicked = True
                 continue
             
-            # 4. 尝试点击确认按钮
+            # 5. 尝试点击确认按钮
             if self.click_confirm_button():
                 buttons_clicked = True
                 continue
             
-            # 4. 尝试按回车键
+            # 6. 尝试按回车键
             try:
                 print("尝试按回车键...")
                 self.driver.find_element(By.TAG_NAME, "body").send_keys(Keys.RETURN)
