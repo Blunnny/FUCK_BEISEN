@@ -550,13 +550,15 @@ class ButtonHandler:
             
             print(f"查找形容词选项，目标列表: {adjective_list}")
             
-            # 根据截图分析，形容词选项的选择器
+            # 根据实际测试结果优化形容词选项的选择器
             option_selectors = [
-                "div[data-cls='select-block_item']",  # 根据截图的data-cls属性
-                ".select-block_item",                 # CSS类选择器
-                "div[class*='select-block']",         # 包含select-block的div
-                "div[class*='SK9xr']",                # 根据截图的class
-                "span[class*='I6Yvw']",               # 根据截图的span class
+                "div[data-cls='tuozhuai-content'] span[class*='I6Yvw']",  # 实际有效的选择器
+                # 以下选择器暂时注释，根据测试结果它们无效
+                # "div[data-cls='select-block_item']",  # 根据截图的data-cls属性
+                # ".select-block_item",                 # CSS类选择器
+                # "div[class*='select-block']",         # 包含select-block的div
+                # "div[class*='SK9xr']",                # 根据截图的class
+                # "span[class*='I6Yvw']",               # 根据截图的span class
             ]
             
             options = []

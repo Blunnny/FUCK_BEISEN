@@ -140,9 +140,10 @@ class AdjectiveTestAutomation:
             # 等待形容词容器出现
             print("等待形容词容器...")
             container_selectors = [
-                "div[data-cls='tuozhuai-content']",
-                "div[class*='eMsyU']",
-                "div[class*='jWOM6']"
+                "div[data-cls='tuozhuai-content']",  # 实际有效的容器选择器
+                # 以下选择器暂时注释，根据测试结果它们无效
+                # "div[class*='eMsyU']",
+                # "div[class*='jWOM6']"
             ]
             
             container = None
@@ -184,14 +185,15 @@ class AdjectiveTestAutomation:
             except Exception as e:
                 print(f"检查页面结构失败: {e}")
             
-            # 根据截图分析，使用正确的选择器
+            # 根据实际测试结果优化形容词选择器
             option_selectors = [
-                "div[data-cls='tuozhuai-content'] span[class*='I6Yvw']",  # 根据截图的容器和span结构
-                "div[class*='eMsyU'] span[class*='I6Yvw']",               # 根据截图的容器class
-                "span[class*='I6Yvw']",                                   # 根据截图的span class
-                "div[data-cls='tuozhuai-content'] span",                  # 容器内的所有span
-                "div[class*='eMsyU'] span",                               # 根据截图的容器class
-                "div[class*='qupWj'] span[class*='I6Yvw']",               # 根据截图的选项结构
+                "div[data-cls='tuozhuai-content'] span[class*='I6Yvw']",  # 实际有效的选择器
+                # 以下选择器暂时注释，根据测试结果它们无效
+                # "div[class*='eMsyU'] span[class*='I6Yvw']",               # 根据截图的容器class
+                # "span[class*='I6Yvw']",                                   # 根据截图的span class
+                # "div[data-cls='tuozhuai-content'] span",                  # 容器内的所有span
+                # "div[class*='eMsyU'] span",                               # 根据截图的容器class
+                # "div[class*='qupWj'] span[class*='I6Yvw']",               # 根据截图的选项结构
             ]
             
             for selector in option_selectors:
@@ -420,6 +422,10 @@ class AdjectiveTestAutomation:
                 print("点击确定按钮失败")
                 return False
             
+            # 等待页面响应确定按钮点击
+            print("等待页面响应...")
+            Utils.random_delay(2, 3)
+            
             print(f"第 {question_num} 题回答完成")
             return True
             
@@ -456,8 +462,21 @@ class AdjectiveTestAutomation:
     def click_next_question(self) -> bool:
         """点击下一题按钮"""
         try:
+            print("正在寻找下一题按钮...")
+            
+            # 首先检查页面状态，看是否已经完成所有题目
+            try:
+                page_source = self.driver.page_source
+                if any(keyword in page_source for keyword in ["测试完成", "提交", "完成", "结束", "submit"]):
+                    print("检测到测试完成标识，无需点击下一题按钮")
+                    return False
+            except:
+                pass
+            
             next_selector = self.test_selectors.get("next_question", ".next-question, .continue, .next")
-            next_button = Utils.wait_for_element(self.driver, next_selector, timeout=5)
+            print(f"使用选择器: {next_selector}")
+            
+            next_button = Utils.wait_for_element(self.driver, next_selector, timeout=3)  # 减少超时时间
             
             if next_button:
                 success = Utils.safe_click(self.driver, next_button, self.retry_count)
@@ -465,12 +484,18 @@ class AdjectiveTestAutomation:
                     print("成功点击下一题按钮")
                     Utils.random_delay(2, 3)
                     return True
+            else:
+                print("未找到专门的下一题按钮")
             
             # 如果找不到专门的下一题按钮，尝试通用按钮
+            print("尝试使用通用按钮处理器...")
             if self.button_handler:
-                return self.button_handler.click_next_button()
+                result = self.button_handler.click_next_button()
+                if result:
+                    print("通用按钮处理器成功点击下一题按钮")
+                    return True
             
-            print("未找到下一题按钮")
+            print("所有方法都无法找到下一题按钮")
             return False
             
         except Exception as e:
@@ -602,13 +627,35 @@ class AdjectiveTestAutomation:
                         print("连续失败多次，可能已完成所有题目")
                         break
                 
-                # 点击下一题
-                if not self.click_next_question():
-                    print("无法进入下一题，可能已完成所有题目")
-                    break
+                # 题目回答成功后，等待页面跳转并检查是否已进入下一题
+                print("等待页面跳转...")
+                Utils.random_delay(3, 5)  # 给页面时间跳转
                 
+                # 检查是否还有下一题（通过尝试查找形容词元素）
                 question_num += 1
-                Utils.random_delay(2, 4)  # 题目间延迟
+                print(f"检查是否已进入第 {question_num} 题...")
+                
+                # 尝试查找下一题的形容词元素
+                next_elements = self.find_adjective_elements()
+                if next_elements:
+                    print(f"成功检测到第 {question_num} 题，继续答题")
+                    continue
+                else:
+                    # 如果没有找到形容词元素，尝试点击下一题按钮
+                    print("未检测到新题目，尝试点击下一题按钮...")
+                    if self.click_next_question():
+                        print("成功点击下一题按钮，等待新题目加载...")
+                        Utils.random_delay(3, 5)
+                        # 再次检查是否有新题目
+                        next_elements = self.find_adjective_elements()
+                        if next_elements:
+                            print(f"成功进入第 {question_num} 题")
+                            continue
+                    
+                    # 如果仍然没有找到新题目，可能已完成所有题目
+                    print("无法找到更多题目，可能已完成所有题目")
+                    question_num -= 1  # 恢复题目编号
+                    break
             
             # 提交测试
             print(f"\n{'='*60}")
