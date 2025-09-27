@@ -37,7 +37,17 @@ python adjective_test_automation.py
 ```bash
 cp single_choice_answers_template.json single_choice_answers.json
 # 编辑 single_choice_answers.json，配置测试URL和题目答案
-python single_choice_automation.py
+python single_choice_main.py
+
+**未匹配问题记录功能**：
+
+程序运行结束后，会自动将所有未匹配到答案的问题记录到 `unmatched_questions.json` 文件中，包含：
+- 问题文本
+- 建议的默认答案
+- 时间戳
+- 分析说明
+
+你可以根据这个文件来完善题库，将未匹配的问题添加到配置文件中。
 ```
 
 ### 3. 运行程序
@@ -79,23 +89,30 @@ python single_choice_automation.py
 1. 复制 `single_choice_answers_template.json` 为 `single_choice_answers.json` 配置文件
 2. 修改以下配置项：
 
+
+
 ```json
 {
   "test_url": "你的北森测试链接",
-  "question_answers": [
-    {
-      "question_text": "当我感到心烦时,我能控制住自己不要发火",
-      "answer": "比较符合"
-    },
-    {
-      "question_text": "我能够很好地处理压力",
-      "answer": "非常符合"
-    },
-    {
-      "question_text": "我经常感到焦虑",
-      "answer": "比较不符合"
-    }
-  ],
+  "default_answer": "非常不符合",
+  "answer_categories": {
+    "非常符合": [
+      "我能够很好地处理压力",
+      "我善于与他人合作"
+    ],
+    "比较符合": [
+      "当我感到心烦时,我能控制住自己不要发火",
+      "我通常能保持冷静"
+    ],
+    "比较不符合": [
+      "我经常感到焦虑",
+      "我容易紧张"
+    ],
+    "非常不符合": [
+      "我经常发脾气",
+      "我很难控制情绪"
+    ]
+  },
   "settings": {
     "wait_timeout": 10,
     "page_load_timeout": 30,
@@ -103,6 +120,7 @@ python single_choice_automation.py
   }
 }
 ```
+
 
 #### 单选题配置项说明
 
@@ -176,18 +194,15 @@ python single_choice_automation.py
 
 ```
 FUCK_BEISEN/
-├── adjective_test_automation.py      # 形容词三选二自动化模块
-├── single_choice_automation.py       # 单选题自动化模块
-├── button_handler.py                 # 按钮处理模块（复用）
-├── utils.py                          # 工具函数模块（复用）
-├── answers.json                      # 形容词三选二答案配置文件（不提交）
-├── answers_template.json             # 形容词三选二配置文件模板
-├── single_choice_answers.json        # 单选题答案配置文件（不提交）
-├── single_choice_answers_template.json # 单选题配置文件模板
-├── test_single_choice.py             # 单选题测试脚本
-├── requirements.txt                  # 依赖包列表
-├── .gitignore                       # Git忽略文件
-└── README.md                        # 说明文档
+├── adjective_automation.py          # 形容词题型自动化脚本
+├── single_choice_main.py           # 单选题题型自动化脚本
+├── button_handler.py               # 按钮处理模块
+├── adjective_answers_template.json  # 形容词题型配置模板
+├── single_choice_answers_template.json # 单选题题型配置模板
+├── adjective_answers.json          # 形容词题型配置文件（需要创建）
+├── single_choice_answers.json      # 单选题题型配置文件（需要创建）
+├── unmatched_questions.json        # 未匹配问题记录文件（自动生成）
+└── README.md                       # 项目说明文档
 ```
 
 ## 注意事项
@@ -229,11 +244,23 @@ FUCK_BEISEN/
    - 程序会自动处理所有导航步骤
    - 如果失败，检查测试链接是否正确
 
-### 调试建议
+6. **未匹配问题过多**：
+   - 检查 `unmatched_questions.json` 文件
+   - 将未匹配的问题添加到配置文件中
+   - 考虑使用新的答案分类格式提高匹配效率
 
-1. **查看控制台输出**：程序会输出详细的调试信息
-2. **检查配置文件**：确保 JSON 格式正确，URL 和答案配置无误
-3. **逐步测试**：可以先运行测试脚本检查基本功能
+
+
+### 调试信息
+
+程序运行时会输出详细的日志信息，包括：
+- 找到的问题文本
+- 匹配的答案
+- 元素定位状态
+- 错误信息
+- 未匹配问题统计
+
+根据这些信息可以快速定位问题所在。程序结束后会生成未匹配问题报告，帮助完善题库。
 
 ## 许可证
 
