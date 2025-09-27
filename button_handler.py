@@ -151,15 +151,16 @@ class ButtonHandler:
         """点击进入试卷按钮（带5秒等待）"""
         print("查找进入试卷按钮...")
         
-        # 专门针对进入试卷按钮的选择器
+        # 专门针对进入试卷按钮的选择器（根据实际测试结果优化）
         enter_test_selectors = [
-            ".phoenix-button.wraper--primary",  # 主要按钮样式
-            ".phoenix-button.wraper--middle",   # 中等大小按钮
-            ".phoenix-button.wraper",           # 通用按钮包装器
-            "div.phoenix-button[class*='primary']",  # 主要按钮
-            "div.phoenix-button[class*='middle']",   # 中等按钮
-            ".phoenix-button.content",          # 按钮内容
-            "div[class*='phoenix-button'][class*='primary']",  # 组合选择器
+            ".phoenix-button.wraper--primary",  # 实际有效的选择器
+            # 以下选择器暂时注释，根据测试结果它们无效
+            # ".phoenix-button.wraper--middle",   # 中等大小按钮
+            # ".phoenix-button.wraper",           # 通用按钮包装器
+            # "div.phoenix-button[class*='primary']",  # 主要按钮
+            # "div.phoenix-button[class*='middle']",   # 中等按钮
+            # ".phoenix-button.content",          # 按钮内容
+            # "div[class*='phoenix-button'][class*='primary']",  # 组合选择器
         ]
         
         # 尝试按选择器查找按钮
@@ -228,13 +229,14 @@ class ButtonHandler:
         """点击继续答题或去答题按钮"""
         print("查找继续答题/去答题按钮...")
         
-        # 根据截图分析，继续答题按钮的选择器
+        # 根据实际测试结果优化继续答题按钮的选择器
         continue_selectors = [
-            "div[data-cls='outline-part-item-right']",  # 根据截图的data-cls属性
-            "div[data-cls*='outline-part-item']",       # 更宽泛的匹配
-            ".outline-part-item-right",                 # CSS类选择器
-            "div[class*='outline-part-item']",          # 包含outline-part-item的div
-            "div[class*='part-item']",                  # 包含part-item的div
+            "div[data-cls='outline-part-item-right']",  # 实际有效的选择器
+            # 以下选择器暂时注释，根据测试结果它们无效
+            # "div[data-cls*='outline-part-item']",       # 更宽泛的匹配
+            # ".outline-part-item-right",                 # CSS类选择器
+            # "div[class*='outline-part-item']",          # 包含outline-part-item的div
+            # "div[class*='part-item']",                  # 包含part-item的div
         ]
         
         # 尝试按选择器查找按钮
@@ -306,13 +308,14 @@ class ButtonHandler:
         """点击下一步按钮（答题说明页面）"""
         print("查找下一步按钮...")
         
-        # 根据截图分析，下一步按钮的选择器
+        # 根据实际测试结果优化下一步按钮的选择器
         next_step_selectors = [
-            "div.phoenix-button.content",  # 根据截图的class结构
-            ".phoenix-button.content",     # CSS类选择器
-            "div[class*='phoenix-button'][class*='content']",  # 组合选择器
-            ".phoenix-button",             # 通用phoenix-button
-            "div[class*='phoenix-button']", # 包含phoenix-button的div
+            "div.phoenix-button.content",  # 实际有效的选择器
+            # 以下选择器暂时注释，根据测试结果它们无效
+            # ".phoenix-button.content",     # CSS类选择器
+            # "div[class*='phoenix-button'][class*='content']",  # 组合选择器
+            # ".phoenix-button",             # 通用phoenix-button
+            # "div[class*='phoenix-button']", # 包含phoenix-button的div
         ]
         
         # 尝试按选择器查找按钮
@@ -384,13 +387,14 @@ class ButtonHandler:
         """点击练习题页面的下一步按钮"""
         print("查找练习题页面的下一步按钮...")
         
-        # 练习题页面的下一步按钮选择器（与普通下一步按钮相同）
+        # 根据实际测试结果优化练习题下一步按钮的选择器
         practice_next_step_selectors = [
-            "div.phoenix-button.content",  # 根据截图的class结构
-            ".phoenix-button.content",     # CSS类选择器
-            "div[class*='phoenix-button'][class*='content']",  # 组合选择器
-            ".phoenix-button",             # 通用phoenix-button
-            "div[class*='phoenix-button']", # 包含phoenix-button的div
+            "div.phoenix-button.content",  # 实际有效的选择器
+            # 以下选择器暂时注释，根据测试结果它们无效
+            # ".phoenix-button.content",     # CSS类选择器
+            # "div[class*='phoenix-button'][class*='content']",  # 组合选择器
+            # ".phoenix-button",             # 通用phoenix-button
+            # "div[class*='phoenix-button']", # 包含phoenix-button的div
         ]
         
         # 尝试按选择器查找按钮
@@ -462,13 +466,14 @@ class ButtonHandler:
         """点击正式答题按钮（练习完成页面）"""
         print("查找正式答题按钮...")
         
-        # 根据截图分析，正式答题按钮的选择器
+        # 根据实际测试结果优化正式答题按钮的选择器
         formal_answer_selectors = [
-            "div.phoenix-button.content",  # 根据截图的class结构
-            ".phoenix-button.content",     # CSS类选择器
-            "div[class*='phoenix-button'][class*='content']",  # 组合选择器
-            ".phoenix-button",             # 通用phoenix-button
-            "div[class*='phoenix-button']", # 包含phoenix-button的div
+            "div.phoenix-button.content",  # 实际有效的选择器
+            # 以下选择器暂时注释，根据测试结果它们无效
+            # ".phoenix-button.content",     # CSS类选择器
+            # "div[class*='phoenix-button'][class*='content']",  # 组合选择器
+            # ".phoenix-button",             # 通用phoenix-button
+            # "div[class*='phoenix-button']", # 包含phoenix-button的div
         ]
         
         # 尝试按选择器查找按钮
